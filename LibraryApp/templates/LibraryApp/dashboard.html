@@ -1,155 +1,139 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Library</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans">
+{% extends 'base.html' %}
 
-    <!-- Navbar -->
-    <nav class="bg-indigo-600 p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="{% url 'dashboard' %}" class="text-white text-2xl font-bold">Library</a>
-            <div>
-                <span class="text-white mr-4">Welcome, {{ user.username }}!</span>
-                <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</a>
+{% block title %}Dashboard - AMS Learn{% endblock %}
+
+{% block content %}
+<!-- Search Bar -->
+<div class="mb-8">
+    <form method="GET" action="{% url 'dashboard' %}" class="max-w-2xl mx-auto">
+        <div class="flex gap-2">
+            <input 
+                type="text" 
+                name="search" 
+                value="{{ search_query }}"
+                placeholder="Search courses by title, description, or instructor..." 
+                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent">
+            <button 
+                type="submit" 
+                class="px-6 py-3 bg-african-lime text-white rounded-lg hover:bg-african-green transition font-semibold shadow">
+                Search
+            </button>
+            {% if search_query %}
+                <a 
+                    href="{% url 'dashboard' %}" 
+                    class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition font-semibold shadow">
+                    Clear
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Search Results Info -->
+{% if search_query %}
+<div class="mb-6">
+    <p class="text-gray-600 text-center">
+        Showing results for "<span class="font-semibold text-african-green">{{ search_query }}</span>"
+    </p>
+</div>
+{% endif %}
+
+<!-- Enrolled Courses Section -->
+<div class="mb-12">
+    <h1 class="text-3xl font-bold text-african-green mb-6 border-b-2 border-african-lime pb-2">Your Enrolled Courses</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for course in enrolled_courses %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1 flex flex-col">
+            <!-- Course Thumbnail -->
+            {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-48 object-cover">
+            {% else %}
+            <div class="w-full h-48 bg-gradient-to-br from-african-lime to-african-green flex items-center justify-center">
+                <span class="text-white text-5xl font-bold">{{ course.title|slice:":1"|upper }}</span>
+            </div>
+            {% endif %}
+            
+            <!-- Course Details -->
+            <div class="p-6 flex flex-col flex-grow">
+                <h2 class="text-2xl font-bold text-african-green mb-2">{{ course.title }}</h2>
+                <p class="text-sm text-gray-500 mb-2">
+                    By {{ course.instructor.username }}
+                </p>
+                <p class="text-gray-700 mb-4 flex-grow">{{ course.description|truncatewords:20 }}</p>
+                <div class="flex items-center justify-between mt-auto">
+                    <span class="text-sm text-gray-600">{{ course.video_count }} video{% if course.video_count != 1 %}s{% endif %}</span>
+                    <a href="{% url 'watch_video' course.id 1 %}" class="inline-block bg-african-lime text-white px-6 py-2 rounded-full font-semibold hover:bg-african-green transition shadow">
+                        Continue
+                    </a>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container mx-auto mt-10 p-4">
-        
-        <!-- Search Bar -->
-        <div class="mb-8">
-            <form method="GET" action="{% url 'dashboard' %}" class="max-w-2xl mx-auto">
-                <div class="flex gap-2">
-                    <input 
-                        type="text" 
-                        name="search" 
-                        value="{{ search_query }}"
-                        placeholder="Search courses by title, description, or instructor..." 
-                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                    <button 
-                        type="submit" 
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold">
-                        Search
-                    </button>
-                    {% if search_query %}
-                        <a 
-                            href="{% url 'dashboard' %}" 
-                            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition font-semibold">
-                            Clear
-                        </a>
-                    {% endif %}
+        {% empty %}
+            <div class="col-span-full">
+                <div class="bg-yellow-50 border-l-4 border-african-yellow p-6 rounded">
+                    <p class="text-african-green font-medium text-center">
+                        {% if search_query %}
+                            No enrolled courses match your search.
+                        {% else %}
+                            You haven't enrolled in any courses yet. Check out the available courses below!
+                        {% endif %}
+                    </p>
                 </div>
-            </form>
-        </div>
-
-        <!-- Search Results Info -->
-        {% if search_query %}
-        <div class="mb-6">
-            <p class="text-gray-600 text-center">
-                Showing results for "<span class="font-semibold text-gray-800">{{ search_query }}</span>"
-            </p>
-        </div>
-        {% endif %}
-
-        <!-- Enrolled Courses Section -->
-        <div class="mb-12">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">Your Enrolled Courses</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {% for course in enrolled_courses %}
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
-                    <!-- Course Thumbnail -->
-                    {% if course.thumbnail %}
-                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-48 object-cover">
-                    {% else %}
-                    <div class="w-full h-48 bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
-                        <span class="text-white text-5xl font-bold">{{ course.title|slice:":1"|upper }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Course Details -->
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ course.title }}</h2>
-                        <p class="text-sm text-gray-500 mb-2">
-                            By {{ course.instructor.username }}
-                        </p>
-                        <p class="text-gray-700 mb-4">{{ course.description|truncatewords:20 }}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">{{ course.video_count }} video{% if course.video_count != 1 %}s{% endif %}</span>
-                            <a href="{% url 'watch_video' course.id 1 %}" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition">
-                                Continue
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                    <div class="col-span-full">
-                        <p class="text-gray-600 text-center py-8">
-                            {% if search_query %}
-                                No enrolled courses match your search.
-                            {% else %}
-                                You are not enrolled in any courses yet.
-                            {% endif %}
-                        </p>
-                    </div>
-                {% endfor %}
             </div>
-        </div>
-
-        <!-- Available Courses Section -->
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">Available Courses</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {% for course in available_courses %}
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-gray-200 transform hover:-translate-y-1">
-                    <!-- Course Thumbnail -->
-                    {% if course.thumbnail %}
-                    <div class="relative">
-                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-48 object-cover">
-                        <span class="absolute top-3 right-3 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">New</span>
-                    </div>
-                    {% else %}
-                    <div class="w-full h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center relative">
-                        <span class="text-white text-5xl font-bold">{{ course.title|slice:":1"|upper }}</span>
-                        <span class="absolute top-3 right-3 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">New</span>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Course Details -->
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ course.title }}</h2>
-                        <p class="text-sm text-gray-500 mb-2">
-                            By {{ course.instructor.username }}
-                        </p>
-                        <p class="text-gray-700 mb-4">{{ course.description|truncatewords:20 }}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">{{ course.video_count }} video{% if course.video_count != 1 %}s{% endif %}</span>
-                            <a href="{% url 'enroll_course' course.id %}" class="inline-block bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 transition">
-                                Enroll Now
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                    <div class="col-span-full">
-                        <p class="text-gray-600 text-center py-8">
-                            {% if search_query %}
-                                No available courses match your search.
-                            {% else %}
-                                No more courses available at the moment.
-                            {% endif %}
-                        </p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
+        {% endfor %}
     </div>
+</div>
 
-</body>
-</html>
+<!-- Available Courses Section -->
+<div>
+    <h1 class="text-3xl font-bold text-african-green mb-6 border-b-2 border-african-lime pb-2">Available Courses</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for course in available_courses %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-gray-200 transform hover:-translate-y-1 flex flex-col">
+            <!-- Course Thumbnail -->
+            {% if course.thumbnail %}
+            <div class="relative">
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-48 object-cover">
+                <span class="absolute top-3 right-3 bg-african-yellow text-african-green text-xs font-semibold px-3 py-1 rounded-full shadow-lg">New</span>
+            </div>
+            {% else %}
+            <div class="w-full h-48 bg-gradient-to-br from-african-yellow to-african-lime flex items-center justify-center relative">
+                <span class="text-white text-5xl font-bold">{{ course.title|slice:":1"|upper }}</span>
+                <span class="absolute top-3 right-3 bg-african-green text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">New</span>
+            </div>
+            {% endif %}
+            
+            <!-- Course Details -->
+            <div class="p-6 flex flex-col flex-grow">
+                <h2 class="text-2xl font-bold text-african-green mb-2">{{ course.title }}</h2>
+                <p class="text-sm text-gray-500 mb-2">
+                    By {{ course.instructor.username }}
+                </p>
+                <p class="text-gray-700 mb-4 flex-grow">{{ course.description|truncatewords:20 }}</p>
+                <div class="flex items-center justify-between mt-auto">
+                    <span class="text-sm text-gray-600">{{ course.video_count }} video{% if course.video_count != 1 %}s{% endif %}</span>
+                    <form method="post" action="{% url 'enroll_course' course.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-block bg-african-yellow text-african-green px-6 py-2 rounded-full font-semibold hover:bg-yellow-400 transition shadow">
+                            Enroll Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-span-full">
+                <div class="bg-gray-50 border border-gray-200 p-6 rounded">
+                    <p class="text-gray-600 text-center">
+                        {% if search_query %}
+                            No available courses match your search.
+                        {% else %}
+                            No new courses available at the moment.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

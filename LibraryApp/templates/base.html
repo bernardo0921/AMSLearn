@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,19 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AMS Learn{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'african-green': '#2d5016',
+                        'african-lime': '#7cb342',
+                        'african-yellow': '#fdd835',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 font-sans">
 
     <!-- Navbar -->
-    <nav class="bg-indigo-600 p-4 shadow-md">
+    <nav class="bg-gradient-to-r from-african-green via-african-lime to-african-green p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="{% url 'dashboard' %}" class="text-white text-2xl font-bold">AMS Learn</a>
+            <!-- Logo and Brand -->
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 hover:opacity-90 transition">
+                <img src="{% static 'images/ams-logo.png' %}" alt="AMS-UMaT Logo" class="h-12 w-12 object-contain bg-white rounded-full p-1">
+                <span class="text-white text-2xl font-bold drop-shadow-md">AMS Learn</span>
+            </a>
+            
+            <!-- Navigation Links -->
             <div>
                 {% if user.is_authenticated %}
-                    <span class="text-white mr-4">Welcome, {{ user.username }}!</span>
-                    <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</a>
+                    <span class="text-white mr-4 font-medium">Welcome, {{ user.username }}!</span>
+                    <a href="{% url 'logout' %}" class="px-4 py-2 bg-african-yellow text-african-green font-semibold rounded hover:bg-yellow-400 transition shadow-md">Logout</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">Login</a>
+                    {% if request.resolver_match.url_name == 'login' %}
+                        <a href="{% url 'signup' %}" class="px-4 py-2 bg-african-yellow text-african-green font-semibold rounded hover:bg-yellow-400 transition shadow-md">Sign Up</a>
+                    {% elif request.resolver_match.url_name == 'signup' %}
+                        <a href="{% url 'login' %}" class="px-4 py-2 bg-african-yellow text-african-green font-semibold rounded hover:bg-yellow-400 transition shadow-md">Login</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="px-4 py-2 bg-african-yellow text-african-green font-semibold rounded hover:bg-yellow-400 transition shadow-md">Login</a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -34,8 +60,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-200 text-center py-4 mt-10 border-t">
-        <p class="text-gray-600 text-sm">&copy; 2025 AMS Learn. All rights reserved.</p>
+    <footer class="bg-african-green text-center py-4 mt-10 border-t-4 border-african-lime">
+        <p class="text-african-lime text-sm font-medium">&copy; 2025 AMS Learn. All rights reserved.</p>
     </footer>
 
 </body>

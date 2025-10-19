@@ -7,7 +7,6 @@ from .models import Course, Video, Enrollment
 from .forms import CustomSignUpForm  # ← Import your custom form
 
 from django.http import StreamingHttpResponse, Http404, FileResponse
-from django.shortcuts import get_object_or_404
 from wsgiref.util import FileWrapper
 import os
 import mimetypes
