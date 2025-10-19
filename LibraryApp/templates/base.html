@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AMS Learn{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'dashboard' %}" class="text-white text-2xl font-bold">AMS Learn</a>
+            <div>
+                {% if user.is_authenticated %}
+                    <span class="text-white mr-4">Welcome, {{ user.username }}!</span>
+                    <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header (Optional) -->
+    {% block header %}
+    {% endblock %}
+
+    <!-- Main Page Content -->
+    <main class="container mx-auto mt-10 p-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-200 text-center py-4 mt-10 border-t">
+        <p class="text-gray-600 text-sm">&copy; 2025 AMS Learn. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
