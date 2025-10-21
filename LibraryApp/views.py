@@ -13,6 +13,7 @@ import mimetypes
 
 from django.contrib import messages
 from django.db.models import Q, Count
+from django.db import models
 from .forms import CourseForm, VideoFormSet
 
 @login_required
@@ -66,30 +67,160 @@ def enroll_course(request, course_id):
     
     return redirect('dashboard')
 
+
 @login_required
 def watch_video(request, course_id, video_order):
     """
     Displays a specific video from a course.
     """
     course = get_object_or_404(Course, id=course_id)
-    # Check if the user is enrolled in this course
-    if not Enrollment.objects.filter(user=request.user, course=course).exists():
-        return redirect('dashboard') # Or show an access denied page
+    
+    # Check if the user is enrolled in this course or is the instructor
+    is_instructor = course.instructor == request.user
+    is_enrolled = Enrollment.objects.filter(user=request.user, course=course).exists()
+    
+    if not (is_instructor or is_enrolled):
+        return redirect('dashboard')
 
     video = get_object_or_404(Video, course=course, order=video_order)
-    videos_in_course = course.videos.all()
+    videos_in_course = course.videos.all().order_by('order')
+    
+    # Get previous and next videos
+    previous_video = videos_in_course.filter(order__lt=video_order).order_by('-order').first()
+    next_video = videos_in_course.filter(order__gt=video_order).order_by('order').first()
 
     context = {
         'video': video,
         'course': course,
-        'videos_in_course': videos_in_course
+        'videos_in_course': videos_in_course,
+        'previous_video': previous_video,
+        'next_video': next_video,
     }
     return render(request, 'LibraryApp/watch_video.html', context)
+
+@login_required
+def edit_video(request, video_id):
+    """
+    Edit video details (instructor only)
+    """
+    video = get_object_or_404(Video, id=video_id)
+    
+    # Check if user is the course instructor
+    if video.course.instructor != request.user:
+        messages.error(request, 'You do not have permission to edit this video.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        video.title = request.POST.get('title')
+        video.description = request.POST.get('description')
+        
+        # Update video file if provided
+        if request.FILES.get('video_file'):
+            video.video_file = request.FILES['video_file']
+        
+        video.save()
+        messages.success(request, f'Video "{video.title}" updated successfully!')
+        return redirect('watch_video', course_id=video.course.id, video_order=video.order)
+    
+    return redirect('watch_video', course_id=video.course.id, video_order=video.order)
+
+@login_required
+def delete_video(request, video_id):
+    """
+    Delete a video (instructor only)
+    """
+    video = get_object_or_404(Video, id=video_id)
+    course = video.course
+    
+    # Check if user is the course instructor
+    if course.instructor != request.user:
+        messages.error(request, 'You do not have permission to delete this video.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        video_title = video.title
+        video.delete()
+        
+        # Reorder remaining videos
+        remaining_videos = Video.objects.filter(course=course).order_by('order')
+        for index, v in enumerate(remaining_videos, start=1):
+            v.order = index
+            v.save()
+        
+        messages.success(request, f'Video "{video_title}" deleted successfully!')
+        
+        # Redirect to first video or dashboard
+        first_video = remaining_videos.first()
+        if first_video:
+            return redirect('watch_video', course_id=course.id, video_order=1)
+        else:
+            return redirect('dashboard')
+    
+    return redirect('dashboard')
+
+@login_required
+def edit_course(request, course_id):
+    """
+    Edit course details (instructor only)
+    """
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if user is the course instructor
+    if course.instructor != request.user:
+        messages.error(request, 'You do not have permission to edit this course.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = CourseForm(request.POST, request.FILES, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Course "{course.title}" updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = CourseForm(instance=course)
+    
+    context = {
+        'form': form,
+        'course': course,
+        'is_edit': True,
+    }
+    return render(request, 'courses/edit_course.html', context)
+
+
+@login_required
+def reorder_videos(request, course_id):
+    """
+    Reorder videos in a course (instructor only)
+    """
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if user is the course instructor
+    if course.instructor != request.user:
+        messages.error(request, 'You do not have permission to reorder videos.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        import json
+        order = json.loads(request.POST.get('order', '[]'))
+        
+        for index, video_id in enumerate(order, start=1):
+            Video.objects.filter(id=video_id, course=course).update(order=index)
+        
+        messages.success(request, 'Videos reordered successfully!')
+        
+        # Redirect back to the first video
+        return redirect('watch_video', course_id=course.id, video_order=1)
+    
+    return redirect('dashboard')
 
 def login_view(request):
     """
     Handles user login.
     """
+    # Redirect authenticated users to dashboard
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -107,6 +238,10 @@ def signup_view(request):
     """
     Handles user registration.
     """
+    # Redirect authenticated users to dashboard
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         form = CustomSignUpForm(request.POST)  # ← Use CustomSignUpForm
         if form.is_valid():
@@ -374,3 +509,50 @@ def unenroll_course(request, course_id):
         messages.warning(request, f'You are not enrolled in "{course.title}"')
     
     return redirect('/dashboard/')
+
+
+@login_required
+def add_videos_to_course(request, course_id):
+    """
+    Add more videos to an existing course (instructor only)
+    """
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if user is the course instructor
+    if course.instructor != request.user:
+        messages.error(request, 'You do not have permission to add videos to this course.')
+        return redirect('watch_video')
+    
+    if request.method == 'POST':
+        video_formset = VideoFormSet(request.POST, request.FILES, queryset=Video.objects.none())
+        
+        if video_formset.is_valid():
+            # Get the highest order number
+            max_order = Video.objects.filter(course=course).aggregate(models.Max('order'))['order__max'] or 0
+            
+            videos = video_formset.save(commit=False)
+            
+            if len(videos) == 0:
+                messages.warning(request, 'No videos were added. Please fill in at least one video form.')
+                return redirect('add_videos', course_id=course.id)
+            
+            for i, video in enumerate(videos, start=max_order + 1):
+                video.course = course
+                video.order = i
+                video.save()
+            
+            messages.success(request, f'{len(videos)} video(s) added to "{course.title}"!')
+            return redirect('dashboard')
+        else:
+            # Show formset errors
+            messages.error(request, 'There were errors in your form. Please check the fields below.')
+            print("Formset errors:", video_formset.errors)  # Debug print
+            print("Non-form errors:", video_formset.non_form_errors())  # Debug print
+    else:
+        video_formset = VideoFormSet(queryset=Video.objects.none())
+    
+    context = {
+        'course': course,
+        'video_formset': video_formset,
+    }
+    return render(request, 'courses/add_videos.html', context)

@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Videos - {{ course.title }} - AMS Learn{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto pb-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center text-sm text-gray-600 mb-4">
+            <a href="{% url 'dashboard' %}" class="hover:text-african-lime transition flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Dashboard
+            </a>
+            <span class="mx-2">/</span>
+            <span class="text-african-green font-medium">{{ course.title }}</span>
+            <span class="mx-2">/</span>
+            <span class="text-african-green font-medium">Add Videos</span>
+        </div>
+        <h1 class="text-4xl font-bold text-african-green mb-2">Add Videos to Course</h1>
+        <p class="text-gray-600">Upload new videos to "<strong>{{ course.title }}</strong>"</p>
+    </div>
+
+    <!-- Display Messages -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg mb-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Add Videos Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+        <form method="POST" enctype="multipart/form-data" id="videoForm">
+            {% csrf_token %}
+            
+            <!-- Display non-form errors -->
+            {% if video_formset.non_form_errors %}
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-red-800 font-semibold">{{ video_formset.non_form_errors }}</p>
+            </div>
+            {% endif %}
+            
+            <div id="videoFormsContainer">
+                {{ video_formset.management_form }}
+                
+                {% for form in video_formset %}
+                <div class="video-form-item mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-african-green">Video {{ forloop.counter }}</h3>
+                        {% if not forloop.first %}
+                        <button type="button" onclick="removeVideoForm(this)" 
+                                class="text-red-600 hover:text-red-800 transition"
+                                aria-label="Remove video {{ forloop.counter }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Display form-specific errors -->
+                    {% if form.non_field_errors %}
+                    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                        <p class="text-red-800 text-sm">{{ form.non_field_errors }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="space-y-4">
+                        <!-- Video Title -->
+                        <div>
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Video Title *
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Video Description -->
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Video Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Video File -->
+                        <div>
+                            <label for="{{ form.video_file.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Video File *
+                            </label>
+                            {{ form.video_file }}
+                            {% if form.video_file.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.video_file.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-500 mt-1">Supported formats: MP4, AVI, MOV, WebM</p>
+                        </div>
+                        
+                        <!-- Hidden fields -->
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Add More Button -->
+            <div class="mb-6">
+                <button type="button" onclick="addVideoForm()" 
+                        class="flex items-center gap-2 px-4 py-2 bg-african-lime text-white rounded-lg hover:bg-african-green transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Another Video
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                <a href="{% url 'dashboard' %}" 
+                   class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Cancel
+                </a>
+                
+                <button type="submit" 
+                        class="px-8 py-3 bg-gradient-to-r from-african-lime to-african-green text-white rounded-lg hover:shadow-lg transition font-semibold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Save Videos
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let formCount = {{ video_formset.total_form_count }};
+    const formPrefix = 'form';
+    
+    function addVideoForm() {
+        const container = document.getElementById('videoFormsContainer');
+        const totalForms = document.querySelector(`#id_${formPrefix}-TOTAL_FORMS`);
+        const currentCount = parseInt(totalForms.value);
+        
+        // Create new form HTML
+        const newForm = `
+            <div class="video-form-item mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-african-green">Video ${currentCount + 1}</h3>
+                    <button type="button" onclick="removeVideoForm(this)" 
+                            class="text-red-600 hover:text-red-800 transition"
+                            aria-label="Remove video ${currentCount + 1}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="id_${formPrefix}-${currentCount}-title" class="block text-sm font-semibold text-gray-700 mb-2">Video Title *</label>
+                        <input type="text" 
+                               name="${formPrefix}-${currentCount}-title" 
+                               id="id_${formPrefix}-${currentCount}-title"
+                               required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition"
+                               placeholder="e.g., Introduction to Variables">
+                    </div>
+                    <div>
+                        <label for="id_${formPrefix}-${currentCount}-description" class="block text-sm font-semibold text-gray-700 mb-2">Video Description</label>
+                        <textarea name="${formPrefix}-${currentCount}-description" 
+                                  id="id_${formPrefix}-${currentCount}-description"
+                                  rows="3"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition"
+                                  placeholder="Brief description of what this video covers..."></textarea>
+                    </div>
+                    <div>
+                        <label for="id_${formPrefix}-${currentCount}-video_file" class="block text-sm font-semibold text-gray-700 mb-2">Video File *</label>
+                        <input type="file" 
+                               name="${formPrefix}-${currentCount}-video_file" 
+                               id="id_${formPrefix}-${currentCount}-video_file"
+                               required 
+                               accept="video/*"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition">
+                        <p class="text-sm text-gray-500 mt-1">Supported formats: MP4, AVI, MOV, WebM</p>
+                    </div>
+                    <input type="hidden" name="${formPrefix}-${currentCount}-id" id="id_${formPrefix}-${currentCount}-id">
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', newForm);
+        totalForms.value = currentCount + 1;
+    }
+    
+    function removeVideoForm(button) {
+        const formItem = button.closest('.video-form-item');
+        const totalForms = document.querySelector(`#id_${formPrefix}-TOTAL_FORMS`);
+        
+        formItem.remove();
+        
+        // Update form count
+        totalForms.value = parseInt(totalForms.value) - 1;
+        
+        // Renumber remaining forms
+        const forms = document.querySelectorAll('.video-form-item');
+        forms.forEach((form, index) => {
+            const heading = form.querySelector('h3');
+            heading.textContent = `Video ${index + 1}`;
+        });
+    }
+</script>
+{% endblock %}

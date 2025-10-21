@@ -53,13 +53,32 @@
                 <span class="text-african-green font-medium">{{ course.title }}</span>
             </div>
             
-            <!-- Unenroll Button -->
-            <button onclick="confirmUnenroll()" class="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-                Unenroll from Course
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                {% if course.instructor == request.user %}
+                    <!-- Instructor Controls -->
+                    <a href="{% url 'edit_course' course.id %}" class="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit Course
+                    </a>
+                    <a href="{% url 'add_videos' course.id %}" class="flex items-center gap-2 px-4 py-2 bg-african-lime border border-african-green text-white rounded-lg hover:bg-african-green transition text-sm font-medium shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Videos
+                    </a>
+                {% else %}
+                    <!-- Unenroll Button (for enrolled students) -->
+                    <button onclick="confirmUnenroll()" class="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-300 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        Unenroll from Course
+                    </button>
+                {% endif %}
+            </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -80,7 +99,17 @@
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-start justify-between mb-3 flex-wrap gap-3">
                     <div class="flex-1">
-                        <h1 class="text-3xl font-bold text-african-green mb-3">{{ video.order }}. {{ video.title }}</h1>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h1 class="text-3xl font-bold text-african-green">{{ video.order }}. {{ video.title }}</h1>
+                            {% if course.instructor == request.user %}
+                                <button onclick="openEditVideoModal()" class="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Edit
+                                </button>
+                            {% endif %}
+                        </div>
                         <div class="flex items-center gap-4 flex-wrap text-sm text-gray-600">
                             <span class="flex items-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,18 +154,27 @@
             <div class="p-6 bg-white border-t border-gray-200">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div class="flex items-center gap-6 text-sm">
-                        <button onclick="toggleLike()" class="flex items-center gap-2 text-gray-600 hover:text-african-lime transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-                            </svg>
-                            <span class="font-medium">Like</span>
-                        </button>
-                        <button onclick="toggleBookmark()" class="flex items-center gap-2 text-gray-600 hover:text-african-yellow transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                            </svg>
-                            <span class="font-medium">Bookmark</span>
-                        </button>
+                        {% if course.instructor != request.user %}
+                            <button onclick="toggleLike()" class="flex items-center gap-2 text-gray-600 hover:text-african-lime transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                </svg>
+                                <span class="font-medium">Like</span>
+                            </button>
+                            <button onclick="toggleBookmark()" class="flex items-center gap-2 text-gray-600 hover:text-african-yellow transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                </svg>
+                                <span class="font-medium">Bookmark</span>
+                            </button>
+                        {% else %}
+                            <span class="flex items-center gap-2 text-blue-600 font-medium">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                You're the instructor
+                            </span>
+                        {% endif %}
                     </div>
                     <div class="flex items-center gap-2 text-sm text-gray-600">
                         <svg class="w-5 h-5 text-african-lime" fill="currentColor" viewBox="0 0 20 20">
@@ -223,15 +261,25 @@
 
         <!-- Playlist -->
         <div class="bg-white rounded-xl shadow-lg p-4 border border-gray-200">
-            <h3 class="text-lg font-bold mb-4 text-african-green flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                Course Playlist
-            </h3>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-african-green flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    Course Playlist
+                </h3>
+                {% if course.instructor == request.user %}
+                    <button onclick="openReorderModal()" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                        </svg>
+                        Reorder
+                    </button>
+                {% endif %}
+            </div>
             <ul class="space-y-2 max-h-[600px] overflow-y-auto playlist-scroll pr-2">
                 {% for v in videos_in_course %}
-                    <li>
+                    <li class="relative group">
                         <a href="{% url 'watch_video' course.id v.order %}" 
                            class="video-item block p-3 rounded-lg transition-all {% if v.id == video.id %}bg-gradient-to-r from-african-lime to-african-green text-white shadow-md{% else %}hover:bg-gray-50 text-gray-700 border border-gray-200{% endif %}">
                             <div class="flex items-start gap-3">
@@ -253,6 +301,14 @@
                                 {% endif %}
                             </div>
                         </a>
+                        {% if course.instructor == request.user %}
+                            <button onclick="confirmDeleteVideo({{ v.id }}, '{{ v.title|escapejs }}')" 
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        {% endif %}
                     </li>
                 {% empty %}
                     <li class="text-gray-500 text-sm p-3 text-center">No videos available</li>
@@ -262,7 +318,8 @@
     </aside>
 </div>
 
-<!-- Confirmation Modal -->
+<!-- Unenroll Confirmation Modal -->
+{% if course.instructor != request.user %}
 <div id="unenrollModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
         <div class="flex items-center gap-3 mb-4">
@@ -275,7 +332,7 @@
         </div>
         <p class="text-gray-600 mb-6">Are you sure you want to unenroll from "<strong class="text-african-green">{{ course.title }}</strong>"? You will lose access to all course videos and your progress.</p>
         <div class="flex gap-3 justify-end">
-            <button onclick="closeModal()" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+            <button onclick="closeModal('unenrollModal')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
                 Cancel
             </button>
             <form method="POST" action="{% url 'unenroll_course' course.id %}" class="inline">
@@ -287,28 +344,229 @@
         </div>
     </div>
 </div>
+{% endif %}
+
+<!-- Edit Video Modal (Instructor Only) -->
+{% if course.instructor == request.user %}
+<div id="editVideoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Edit Video</h3>
+            <button onclick="closeModal('editVideoModal')" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'edit_video' video.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Video Title</label>
+                    <input type="text" name="title" value="{{ video.title }}" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="4" 
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african
+                              -lime focus:border-transparent">{{ video.description }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Replace Video File (Optional)</label>
+                    <input type="file" name="video_file" accept="video/*" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Leave empty to keep current video file</p>
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end mt-6">
+                <button type="button" onclick="closeModal('editVideoModal')" 
+                        class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Video Confirmation Modal -->
+<div id="deleteVideoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="bg-red-100 rounded-full p-3">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">Delete Video</h3>
+        </div>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete "<strong id="deleteVideoTitle" class="text-african-green"></strong>"? This action cannot be undone.</p>
+        <div class="flex gap-3 justify-end">
+            <button onclick="closeModal('deleteVideoModal')" 
+                    class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                Cancel
+            </button>
+            <form method="POST" action="" id="deleteVideoForm" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium shadow">
+                    Yes, Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reorder Videos Modal -->
+<div id="reorderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Reorder Videos</h3>
+            <button onclick="closeModal('reorderModal')" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">Drag and drop videos to reorder them</p>
+        <form method="POST" action="{% url 'reorder_videos' course.id %}" id="reorderForm">
+            {% csrf_token %}
+            <ul id="sortableList" class="space-y-2 mb-6">
+                {% for v in videos_in_course %}
+                    <li data-id="{{ v.id }}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:bg-gray-100 transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <span class="bg-african-lime bg-opacity-20 text-african-green rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {{ v.order }}
+                        </span>
+                        <span class="font-medium text-gray-700 flex-1">{{ v.title }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <input type="hidden" name="order" id="videoOrder">
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeModal('reorderModal')" 
+                        class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 bg-african-lime text-white rounded-lg hover:bg-african-green transition font-medium shadow">
+                    Save Order
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <script>
+    // Modal functions
     function confirmUnenroll() {
         document.getElementById('unenrollModal').classList.remove('hidden');
     }
     
-    function closeModal() {
-        document.getElementById('unenrollModal').classList.add('hidden');
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
     }
     
-    // Close modal when clicking outside
-    document.getElementById('unenrollModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
+    function openEditVideoModal() {
+        document.getElementById('editVideoModal').classList.remove('hidden');
+    }
+    
+    function confirmDeleteVideo(videoId, videoTitle) {
+        document.getElementById('deleteVideoTitle').textContent = videoTitle;
+        document.getElementById('deleteVideoForm').action = `/video/${videoId}/delete/`;
+        document.getElementById('deleteVideoModal').classList.remove('hidden');
+    }
+    
+    function openReorderModal() {
+        document.getElementById('reorderModal').classList.remove('hidden');
+        initSortable();
+    }
+    
+    // Close modals when clicking outside
+    document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
+    
+    // Escape key to close modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                if (!modal.classList.contains('hidden')) {
+                    closeModal(modal.id);
+                }
+            });
         }
     });
     
-    // Escape key to close modal
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
+    // Sortable list functionality
+    function initSortable() {
+        const list = document.getElementById('sortableList');
+        let draggedItem = null;
+        
+        list.querySelectorAll('li').forEach(item => {
+            item.draggable = true;
+            
+            item.addEventListener('dragstart', function(e) {
+                draggedItem = this;
+                this.style.opacity = '0.5';
+            });
+            
+            item.addEventListener('dragend', function(e) {
+                this.style.opacity = '1';
+            });
+            
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (this !== draggedItem) {
+                    const allItems = [...list.querySelectorAll('li')];
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const targetIndex = allItems.indexOf(this);
+                    
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedItem, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedItem, this);
+                    }
+                    
+                    updateOrderNumbers();
+                }
+            });
+        });
+        
+        // Update order numbers visually
+        updateOrderNumbers();
+    }
+    
+    function updateOrderNumbers() {
+        const items = document.querySelectorAll('#sortableList li');
+        items.forEach((item, index) => {
+            const orderBadge = item.querySelector('span.bg-african-lime');
+            if (orderBadge) {
+                orderBadge.textContent = index + 1;
+            }
+        });
+    }
+    
+    // Save reorder
+    document.getElementById('reorderForm')?.addEventListener('submit', function(e) {
+        const items = document.querySelectorAll('#sortableList li');
+        const order = Array.from(items).map(item => item.dataset.id);
+        document.getElementById('videoOrder').value = JSON.stringify(order);
     });
     
     // Placeholder functions for like and bookmark (can be implemented with AJAX)

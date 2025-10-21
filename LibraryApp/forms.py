@@ -45,15 +45,27 @@ class CourseForm(forms.ModelForm):
 class VideoForm(forms.ModelForm):
     class Meta:
         model = Video
-        fields = ['title', 'video_file', 'description', 'order']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
-            field.widget.attrs.update({
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
-                'placeholder': field.label
+        fields = ['title', 'video_file', 'description']  # Removed 'order' - it's set automatically in the view
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition',
+                'placeholder': 'e.g., Introduction to Variables'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition',
+                'placeholder': 'Brief description of what this video covers...',
+                'rows': 3
+            }),
+            'video_file': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-african-lime focus:border-transparent transition',
+                'accept': 'video/*'
             })
+        }
 
 
-VideoFormSet = modelformset_factory(Video, form=VideoForm, extra=1, can_delete=True)
+VideoFormSet = modelformset_factory(
+    Video, 
+    form=VideoForm, 
+    extra=1, 
+    can_delete=False  # Changed to False since your template doesn't handle deletion
+)
